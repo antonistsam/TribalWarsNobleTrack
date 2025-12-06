@@ -415,25 +415,25 @@ function displayEverything() {
                 //calculate here how many villages belong to which category
                 
                 // Determine if village is primarily offensive or defensive
-                // Only count if it meets minimum threshold (quarterPop)
-                if (thisVillageOffPop > thisVillageDefPop && thisVillageOffPop >= quarterPop) {
+                // Thresholds: 1/4 = 2500-7500, 1/2 = 7500-12500, 3/4 = 12500-17500, Full = 17500+
+                if (thisVillageOffPop > thisVillageDefPop && thisVillageOffPop >= 2500) {
                     // Offensive village
-                    if (thisVillageOffPop >= fullPop) {
+                    if (thisVillageOffPop >= 17500) {
                         typeTotals[playerName]["fullNuke"] += 1;
-                    } else if (thisVillageOffPop >= almostPop) {
+                    } else if (thisVillageOffPop >= 12500) {
                         typeTotals[playerName]["almostNuke"] += 1;
-                    } else if (thisVillageOffPop >= semiPop) {
+                    } else if (thisVillageOffPop >= 7500) {
                         typeTotals[playerName]["semiNuke"] += 1;
                     } else {
                         typeTotals[playerName]["quarterNuke"] += 1;
                     }
-                } else if (thisVillageDefPop > thisVillageOffPop && thisVillageDefPop >= quarterPop) {
+                } else if (thisVillageDefPop > thisVillageOffPop && thisVillageDefPop >= 2500) {
                     // Defensive village
-                    if (thisVillageDefPop >= fullPop) {
+                    if (thisVillageDefPop >= 17500) {
                         typeTotals[playerName]["fullDV"] += 1;
-                    } else if (thisVillageDefPop >= almostPop) {
+                    } else if (thisVillageDefPop >= 12500) {
                         typeTotals[playerName]["almostDV"] += 1;
-                    } else if (thisVillageDefPop >= semiPop) {
+                    } else if (thisVillageDefPop >= 7500) {
                         typeTotals[playerName]["semiDV"] += 1;
                     } else {
                         typeTotals[playerName]["quarterDV"] += 1;
