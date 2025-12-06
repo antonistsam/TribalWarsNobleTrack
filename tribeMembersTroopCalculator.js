@@ -413,18 +413,31 @@ function displayEverything() {
                 }
 
                 //calculate here how many villages belong to which category
-
-                // Off
-                if (thisVillageOffPop >= fullPop) typeTotals[playerName]["fullNuke"] += 1;
-                if (thisVillageOffPop < fullPop && thisVillageOffPop >= almostPop) typeTotals[playerName]["almostNuke"] += 1;
-                if (thisVillageOffPop < almostPop && thisVillageOffPop >= semiPop) typeTotals[playerName]["semiNuke"] += 1;
-                if (thisVillageOffPop < semiPop && thisVillageOffPop >= quarterPop) typeTotals[playerName]["quarterNuke"] += 1;
-
-                // Def
-                if (thisVillageDefPop >= fullPop) typeTotals[playerName]["fullDV"] += 1;
-                if (thisVillageDefPop < fullPop && thisVillageDefPop >= almostPop) typeTotals[playerName]["almostDV"] += 1;
-                if (thisVillageDefPop < almostPop && thisVillageDefPop >= semiPop) typeTotals[playerName]["semiDV"] += 1;
-                if (thisVillageDefPop < semiPop && thisVillageDefPop >= quarterPop) typeTotals[playerName]["quarterDV"] += 1;
+                
+                // Determine if village is primarily offensive or defensive
+                if (thisVillageOffPop > thisVillageDefPop) {
+                    // Offensive village
+                    if (thisVillageOffPop >= fullPop) {
+                        typeTotals[playerName]["fullNuke"] += 1;
+                    } else if (thisVillageOffPop >= almostPop) {
+                        typeTotals[playerName]["almostNuke"] += 1;
+                    } else if (thisVillageOffPop >= semiPop) {
+                        typeTotals[playerName]["semiNuke"] += 1;
+                    } else if (thisVillageOffPop >= quarterPop) {
+                        typeTotals[playerName]["quarterNuke"] += 1;
+                    }
+                } else if (thisVillageDefPop > thisVillageOffPop) {
+                    // Defensive village
+                    if (thisVillageDefPop >= fullPop) {
+                        typeTotals[playerName]["fullDV"] += 1;
+                    } else if (thisVillageDefPop >= almostPop) {
+                        typeTotals[playerName]["almostDV"] += 1;
+                    } else if (thisVillageDefPop >= semiPop) {
+                        typeTotals[playerName]["semiDV"] += 1;
+                    } else if (thisVillageDefPop >= quarterPop) {
+                        typeTotals[playerName]["quarterDV"] += 1;
+                    }
+                }
 
                 // Train
 
