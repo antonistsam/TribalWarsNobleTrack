@@ -376,8 +376,7 @@ function displayEverything() {
                             thisVillageOffPop += parseInt(playerData[playerName][Object.keys(playerData[playerName])[villageCounter]][game_data.units[lol]]);
                             break;
                         case "spy":
-                            thisVillageDefPop += 2 * parseInt(playerData[playerName][Object.keys(playerData[playerName])[villageCounter]][game_data.units[lol]]);
-                            thisVillageOffPop += 2 * parseInt(playerData[playerName][Object.keys(playerData[playerName])[villageCounter]][game_data.units[lol]]);
+                            // Don't count scouts in population calculations
                             if (parseInt(playerData[playerName][Object.keys(playerData[playerName])[villageCounter]][game_data.units[lol]]) > scoutSize) {
                                 thisVillageScout++;
                             }
@@ -406,6 +405,7 @@ function displayEverything() {
                                 //has train
                                 thisVillageTrain++;
                             }
+                            break;
                         default:
                             //militia/paladin left
                             break;
@@ -415,7 +415,8 @@ function displayEverything() {
                 //calculate here how many villages belong to which category
                 
                 // Determine if village is primarily offensive or defensive
-                if (thisVillageOffPop > thisVillageDefPop) {
+                // Only count if it meets minimum threshold (quarterPop)
+                if (thisVillageOffPop > thisVillageDefPop && thisVillageOffPop >= quarterPop) {
                     // Offensive village
                     if (thisVillageOffPop >= fullPop) {
                         typeTotals[playerName]["fullNuke"] += 1;
@@ -423,10 +424,10 @@ function displayEverything() {
                         typeTotals[playerName]["almostNuke"] += 1;
                     } else if (thisVillageOffPop >= semiPop) {
                         typeTotals[playerName]["semiNuke"] += 1;
-                    } else if (thisVillageOffPop >= quarterPop) {
+                    } else {
                         typeTotals[playerName]["quarterNuke"] += 1;
                     }
-                } else if (thisVillageDefPop > thisVillageOffPop) {
+                } else if (thisVillageDefPop > thisVillageOffPop && thisVillageDefPop >= quarterPop) {
                     // Defensive village
                     if (thisVillageDefPop >= fullPop) {
                         typeTotals[playerName]["fullDV"] += 1;
@@ -434,7 +435,7 @@ function displayEverything() {
                         typeTotals[playerName]["almostDV"] += 1;
                     } else if (thisVillageDefPop >= semiPop) {
                         typeTotals[playerName]["semiDV"] += 1;
-                    } else if (thisVillageDefPop >= quarterPop) {
+                    } else {
                         typeTotals[playerName]["quarterDV"] += 1;
                     }
                 }
