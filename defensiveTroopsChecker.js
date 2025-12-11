@@ -1,16 +1,20 @@
 // Tribal Wars Defensive Troops Checker
 // Checks which tribe members haven't sent defensive troops and counts total troops
 
-(function() {
-    // Predefined list of all tribe members
-    const allPlayers = [
-        "El Matador", "krisos", "astatos87", "AdrenaLine", "GRAY", 
-        "EarthWalkergr", "NECROPHOS", "zaxoscool7", "Heathen", "Μανιασμένη Βoυβoυζέλα",
-        "Mugiwara", "Snatcher", "Fr4nKenStein", "renato", "Οι 3 παπατζήδες",
-        "CaveMan23", "Latis", "hardblocker", "dim68", "Erwin Schrodinger",
-        "Jason-Afroditi", "Νoriega", "Tourb1nas", "Da FiPiKa", "The Sith lord",
-        "Julia", "Engineer92", "Eτερος εγώ", "alex333"
-    ];
+(function(playerNames) {
+    // Check if player names were provided
+    if (!playerNames || playerNames.trim().length === 0) {
+        alert('Error: No player names provided! Please configure the bookmarklet with your tribe members.');
+        return;
+    }
+    
+    // Split by semicolon and trim whitespace
+    const allPlayers = playerNames.split(';').map(name => name.trim()).filter(name => name.length > 0);
+    
+    if (allPlayers.length === 0) {
+        alert('Error: No valid player names found in the list!');
+        return;
+    }
 
     // Find the units_home table
     const unitsTable = document.getElementById('units_home');
@@ -220,4 +224,4 @@
     closeBtn.addEventListener('click', closePopup);
     overlay.addEventListener('click', closePopup);
 
-})();
+});
