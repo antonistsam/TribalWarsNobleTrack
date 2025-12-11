@@ -1,7 +1,10 @@
 // Tribal Wars Defensive Troops Checker
 // Checks which tribe members haven't sent defensive troops and counts total troops
 
-(function(playerNames) {
+(function() {
+    // Get player names from window variable set by bookmarklet
+    const playerNames = window.TRIBE_PLAYERS;
+    
     // Check if player names were provided
     if (!playerNames || playerNames.trim().length === 0) {
         alert('Error: No player names provided! Please configure the bookmarklet with your tribe members.');
@@ -224,4 +227,4 @@
     closeBtn.addEventListener('click', closePopup);
     overlay.addEventListener('click', closePopup);
 
-});
+})();
