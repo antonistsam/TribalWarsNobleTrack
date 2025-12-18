@@ -737,6 +737,7 @@ window.twSDK = {
     },
     getDestinationCoordinates: function (config, tribes, players, villages) {
         const {
+            coordsInput,
             playersInput,
             tribesInput,
             continents,
@@ -750,6 +751,14 @@ window.twSDK = {
             maxPoints,
             selectiveRandomConfig,
         } = config;
+
+        // If coordsInput is provided, use those coordinates directly
+        if (coordsInput && coordsInput.trim().length > 0) {
+            const coordinates = coordsInput.trim().split(/\s+/).filter(coord => {
+                return coord.match(twSDK.coordsRegex);
+            });
+            return coordinates;
+        }
 
         // get target coordinates
         const chosenPlayers = playersInput.split(',');
