@@ -81,6 +81,31 @@ const CSS_STYLES = `
     border-radius: 5px 5px 0 0;
 }
 
+.ttc-author {
+    text-align: right;
+    font-size: 12px;
+    color: #99AAB5;
+    font-style: italic;
+    margin-top: 5px;
+}
+
+.ttc-tribe-totals {
+    background-color: #2C2F33;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    overflow: hidden;
+    border: 2px solid #7289DA;
+}
+
+.ttc-tribe-header {
+    background-color: #5865F2;
+    color: white;
+    padding: 10px 15px;
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+}
+
 .ttc-player-section {
     background-color: #2C2F33;
     margin-bottom: 15px;
@@ -466,7 +491,59 @@ function calculatePlayerStats(villages) {
 // Step 7: Display results
 function displayResults() {
     let html = '<div class="tribe-troop-counter">';
-    html += '<div class="ttc-header">Tribe Member Troop Counter</div>';
+    html += '<div class="ttc-header">Tribe Member Troop Counter<div class="ttc-author">Script by antonistsam</div></div>';
+    
+    // Calculate tribe totals
+    const tribeTotals = {
+        nukes: { full: 0, threeFourths: 0, half: 0, quarter: 0 },
+        dvs: { full: 0, threeFourths: 0, half: 0, quarter: 0 }
+    };
+    
+    DATA.players.forEach(player => {
+        const stats = DATA.playerStats[player.name];
+        if (stats) {
+            tribeTotals.nukes.full += stats.nukes.full;
+            tribeTotals.nukes.threeFourths += stats.nukes.threeFourths;
+            tribeTotals.nukes.half += stats.nukes.half;
+            tribeTotals.nukes.quarter += stats.nukes.quarter;
+            tribeTotals.dvs.full += stats.dvs.full;
+            tribeTotals.dvs.threeFourths += stats.dvs.threeFourths;
+            tribeTotals.dvs.half += stats.dvs.half;
+            tribeTotals.dvs.quarter += stats.dvs.quarter;
+        }
+    });
+    
+    // Display tribe totals
+    html += `<div class="ttc-tribe-totals">`;
+    html += `<div class="ttc-tribe-header">Tribe Totals</div>`;
+    html += `<div class="ttc-stats-grid">`;
+    
+    // Offensive column
+    html += `<div class="ttc-stats-column">`;
+    html += `<div class="ttc-stat-row"><span class="ttc-stat-label">Full nukes:</span> <span class="ttc-stat-value">${tribeTotals.nukes.full}</span></div>`;
+    html += `<div class="ttc-stat-row"><span class="ttc-stat-label">3/4 nukes:</span> <span class="ttc-stat-value">${tribeTotals.nukes.threeFourths}</span></div>`;
+    html += `<div class="ttc-stat-row"><span class="ttc-stat-label">1/2 nukes:</span> <span class="ttc-stat-value">${tribeTotals.nukes.half}</span></div>`;
+    html += `<div class="ttc-stat-row"><span class="ttc-stat-label">1/4 nukes:</span> <span class="ttc-stat-value">${tribeTotals.nukes.quarter}</span></div>`;
+    html += `</div>`;
+    
+    // Defensive column
+    html += `<div class="ttc-stats-column">`;
+    html += `<div class="ttc-stat-row"><span class="ttc-stat-label">Full DVs:</span> <span class="ttc-stat-value">${tribeTotals.dvs.full}</span></div>`;
+    html += `<div class="ttc-stat-row"><span class="ttc-stat-label">3/4 DVs:</span> <span class="ttc-stat-value">${tribeTotals.dvs.threeFourths}</span></div>`;
+    html += `<div class="ttc-stat-row"><span class="ttc-stat-label">1/2 DVs:</span> <span class="ttc-stat-value">${tribeTotals.dvs.half}</span></div>`;
+    html += `<div class="ttc-stat-row"><span class="ttc-stat-label">1/4 DVs:</span> <span class="ttc-stat-value">${tribeTotals.dvs.quarter}</span></div>`;
+    html += `</div>`;
+    
+    // Total villages column
+    const totalNukes = tribeTotals.nukes.full + tribeTotals.nukes.threeFourths + tribeTotals.nukes.half + tribeTotals.nukes.quarter;
+    const totalDVs = tribeTotals.dvs.full + tribeTotals.dvs.threeFourths + tribeTotals.dvs.half + tribeTotals.dvs.quarter;
+    html += `<div class="ttc-stats-column">`;
+    html += `<div class="ttc-stat-row"><span class="ttc-stat-label">Total Nukes:</span> <span class="ttc-stat-value">${totalNukes}</span></div>`;
+    html += `<div class="ttc-stat-row"><span class="ttc-stat-label">Total DVs:</span> <span class="ttc-stat-value">${totalDVs}</span></div>`;
+    html += `</div>`;
+    
+    html += `</div>`; // End stats grid
+    html += `</div>`; // End tribe totals
     
     DATA.players.forEach(player => {
         const stats = DATA.playerStats[player.name];
