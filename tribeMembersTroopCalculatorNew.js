@@ -14,8 +14,32 @@ const CONFIG = {
         half: 8000,
         quarter: 3000
     },
-    offensiveAxeThreshold: 500
+    offensiveAxeThreshold: 500,
+    hasArchers: true // Will be loaded from localStorage
 };
+
+// Load settings from localStorage
+function loadSettings() {
+    const saved = localStorage.getItem('ttc_settings');
+    if (saved) {
+        try {
+            const settings = JSON.parse(saved);
+            CONFIG.hasArchers = settings.hasArchers !== undefined ? settings.hasArchers : true;
+        } catch (e) {
+            console.error('Failed to load settings:', e);
+        }
+    }
+}
+
+// Save settings to localStorage
+function saveSettings() {
+    const settings = {
+        hasArchers: CONFIG.hasArchers
+    };
+    localStorage.setItem('ttc_settings', JSON.stringify(settings));
+}
+
+loadSettings();
 
 // Unit population costs
 const UNIT_POP = {
@@ -35,7 +59,13 @@ const UNIT_POP = {
 };
 
 // Unit order as they appear in the table
-const UNIT_ORDER = ['spear', 'sword', 'axe', 'archer', 'spy', 'light', 'marcher', 'heavy', 'ram', 'catapult', 'knight', 'snob', 'militia'];
+const UNIT_ORDER_FULL = ['spear', 'sword', 'axe', 'archer', 'spy', 'light', 'marcher', 'heavy', 'ram', 'catapult', 'knight', 'snob', 'militia'];
+const UNIT_ORDER_NO_ARCHERS = ['spear', 'sword', 'axe', 'spy', 'light', 'heavy', 'ram', 'catapult', 'knight', 'snob', 'militia'];
+
+// Get current unit order based on settings
+function getUnitOrder() {
+    return CONFIG.hasArchers ? UNIT_ORDER_FULL : UNIT_ORDER_NO_ARCHERS;
+}
 
 // Greek unit names for display
 const UNIT_NAMES_GR = {
@@ -87,6 +117,46 @@ const CSS_STYLES = `
     color: #99AAB5;
     font-style: italic;
     margin-top: 5px;
+}
+
+.ttc-settings {
+    background-color: #40444B;
+    padding: 10px 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid #202225;
+}
+
+.ttc-settings label {
+    color: white;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.ttc-settings input[type="checkbox"] {
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+}
+
+.ttc-settings button {
+    background-color: #5865F2;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.ttc-settings button:hover {
+    background-color: #4752C4;
 }
 
 .ttc-tribe-totals {
@@ -374,7 +444,8 @@ function parsePlayerTroops($data) {
         };
         
         // Extract unit counts (starting from 3rd td, index 2)
-        UNIT_ORDER.forEach((unitType, index) => {
+        const unitOrder = getUnitOrder();
+        unitOrder.forEach((unitType, index) => {
             const cellIndex = index + 2; // Skip village name and points
             const cellText = $cells.eq(cellIndex).text().trim();
             
@@ -402,7 +473,8 @@ function calculateVillageStats(village) {
     const isOffensive = axes > CONFIG.offensiveAxeThreshold;
     
     // Calculate population
-    UNIT_ORDER.forEach(unitType => {
+    const unitOrder = getUnitOrder();
+    unitOrder.forEach(unitType => {
         const count = village.units[unitType] || 0;
         const popCost = UNIT_POP[unitType] || 1;
         const totalPop = count * popCost;
@@ -458,7 +530,8 @@ function calculatePlayerStats(villages) {
     };
     
     // Initialize total units
-    UNIT_ORDER.forEach(unitType => {
+    const unitOrder = getUnitOrder();
+    unitOrder.forEach(unitType => {
         stats.totalUnits[unitType] = 0;
     });
     
@@ -480,7 +553,7 @@ function calculatePlayerStats(villages) {
         }
         
         // Sum up total units
-        UNIT_ORDER.forEach(unitType => {
+        unitOrder.forEach(unitType => {
             stats.totalUnits[unitType] += village.units[unitType] || 0;
         });
     });
@@ -492,6 +565,12 @@ function calculatePlayerStats(villages) {
 function displayResults() {
     let html = '<div class="tribe-troop-counter">';
     html += '<div class="ttc-header">Tribe Member Troop Counter<div class="ttc-author">Script by antonistsam</div></div>';
+    
+    // Settings panel
+    html += '<div class="ttc-settings">';
+    html += '<label><input type="checkbox" id="ttc-archer-mode" ' + (CONFIG.hasArchers ? 'checked' : '') + '> Server has archers (archer & mounted archer)</label>';
+    html += '<button id="ttc-reload-btn">Apply & Reload</button>';
+    html += '</div>';
     
     // Calculate tribe totals
     const tribeTotals = {
@@ -586,7 +665,8 @@ function displayResults() {
         html += `<div class="ttc-content">`;
         html += `<div class="ttc-units-grid">`;
         
-        UNIT_ORDER.forEach(unitType => {
+        const unitOrder = getUnitOrder();
+        unitOrder.forEach(unitType => {
             const count = stats.totalUnits[unitType] || 0;
             const iconUrl = DATA.unitIcons[unitType] || '';
             const unitName = UNIT_NAMES_GR[unitType] || unitType;
@@ -612,6 +692,20 @@ function displayResults() {
     
     // Make collapsibles work
     makeCollapsible();
+    
+    // Setup settings change handler
+    $('#ttc-reload-btn').on('click', function() {
+        const hasArchers = $('#ttc-archer-mode').is(':checked');
+        CONFIG.hasArchers = hasArchers;
+        saveSettings();
+        
+        // Clear and reload
+        $('.tribe-troop-counter').remove();
+        DATA.players = [];
+        DATA.playerStats = {};
+        DATA.unitIcons = {};
+        main();
+    });
 }
 
 // Make collapsible sections work
