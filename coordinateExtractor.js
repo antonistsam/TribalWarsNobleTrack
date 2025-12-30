@@ -19,6 +19,12 @@
                         <label>Input (Paste your text here):</label>
                         <textarea id="coordExtractorInput" placeholder="Paste your village data here..."></textarea>
                     </div>
+                    <div class="coord-extractor-options">
+                        <label class="coord-extractor-checkbox">
+                            <input type="checkbox" id="coordExtractorRemoveDuplicates" checked>
+                            <span>Remove Duplicates</span>
+                        </label>
+                    </div>
                     <div class="coord-extractor-button-container">
                         <button id="coordExtractorProcess" class="coord-extractor-btn-process">Extract Coordinates</button>
                         <button id="coordExtractorClear" class="coord-extractor-btn-clear">Clear</button>
@@ -135,6 +141,30 @@
             font-size: 14px;
         }
 
+        .coord-extractor-options {
+            margin-bottom: 15px;
+        }
+
+        .coord-extractor-checkbox {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .coord-extractor-checkbox input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        .coord-extractor-checkbox span {
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
         .coord-extractor-section textarea {
             width: 100%;
             min-height: 150px;
@@ -234,13 +264,14 @@
     const copyBtn = document.getElementById('coordExtractorCopy');
     const inputArea = document.getElementById('coordExtractorInput');
     const outputArea = document.getElementById('coordExtractorOutput');
+    const removeDuplicatesCheckbox = document.getElementById('coordExtractorRemoveDuplicates');
 
     // Extract coordinates function
     function extractCoordinates() {
         const input = inputArea.value;
         
-        // Regex to match coordinates in format (XXX|YYY)
-        const coordRegex = /\((\d{3}\|\d{3})\)/g;
+        // Regex to match coordinates in format XXX|YYY (with or without parentheses)
+        const coordRegex = /\b(\d{3}\|\d{3})\b/g;
         const matches = [];
         let match;
 
@@ -249,9 +280,16 @@
         }
 
         if (matches.length === 0) {
-            outputArea.value = 'No coordinates found. Please make sure your input contains coordinates in format (XXX|YYY)';
+            outputArea.value = 'No coordinates found. Please make sure your input contains coordinates in format XXX|YYY';
         } else {
-            outputArea.value = matches.join('\n');
+            let result = matches;
+            
+            // Remove duplicates if checkbox is checked
+            if (removeDuplicatesCheckbox.checked) {
+                result = [...new Set(matches)];
+            }
+            
+            outputArea.value = result.join('\n');
         }
     }
 
