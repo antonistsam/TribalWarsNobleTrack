@@ -312,6 +312,175 @@ const CSS_STYLES = `
     border-radius: 5px;
     margin: 10px 0;
 }
+
+.ttc-distance-section {
+    background-color: #2C2F33;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    overflow: hidden;
+    border: 2px solid #F26522;
+}
+
+.ttc-distance-header {
+    background-color: #F26522;
+    color: white;
+    padding: 10px 15px;
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.ttc-distance-config {
+    background-color: #40444B;
+    padding: 15px;
+    border-bottom: 1px solid #202225;
+}
+
+.ttc-distance-inputs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.ttc-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.ttc-input-group label {
+    color: white;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.ttc-input-group input {
+    padding: 6px 10px;
+    border: 1px solid #202225;
+    border-radius: 3px;
+    background-color: #36393F;
+    color: white;
+    font-size: 14px;
+    width: 120px;
+}
+
+.ttc-ranges-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ttc-range-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: white;
+}
+
+.ttc-range-item input {
+    width: 80px;
+    padding: 4px 8px;
+    border: 1px solid #202225;
+    border-radius: 3px;
+    background-color: #36393F;
+    color: white;
+}
+
+.ttc-btn {
+    background-color: #5865F2;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.ttc-btn:hover {
+    background-color: #4752C4;
+}
+
+.ttc-btn-danger {
+    background-color: #ED4245;
+}
+
+.ttc-btn-danger:hover {
+    background-color: #C03537;
+}
+
+.ttc-btn-success {
+    background-color: #3BA55D;
+}
+
+.ttc-btn-success:hover {
+    background-color: #2D7D46;
+}
+
+.ttc-distance-results {
+    padding: 15px;
+}
+
+.ttc-range-group {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #36393F;
+    border-radius: 5px;
+}
+
+.ttc-range-title {
+    color: #F26522;
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.ttc-player-villages {
+    margin-top: 10px;
+}
+
+.ttc-player-header {
+    color: #7289DA;
+    font-weight: bold;
+    margin-top: 10px;
+    margin-bottom: 5px;
+}
+
+.ttc-village-item {
+    padding: 8px;
+    margin: 5px 0;
+    background-color: #40444B;
+    border-radius: 3px;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.ttc-village-info {
+    flex: 1;
+}
+
+.ttc-village-type {
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: bold;
+    background-color: #5865F2;
+    color: white;
+}
+
+.ttc-distance-badge {
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: bold;
+    background-color: #F26522;
+    color: white;
+    margin-left: 10px;
+}
 </style>`;
 
 $("head").append(CSS_STYLES);
@@ -319,6 +488,36 @@ $("head").append(CSS_STYLES);
 // Utility function to add thousands separators
 function formatNumber(num) {
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+
+// Parse coordinates from village name
+function parseCoordinates(villageName) {
+    const match = villageName.match(/(\d+)\|(\d+)/);
+    if (match) {
+        return {
+            x: parseInt(match[1]),
+            y: parseInt(match[2])
+        };
+    }
+    return null;
+}
+
+// Calculate Euclidean distance between two coordinates
+function calculateDistance(coord1, coord2) {
+    const dx = coord1.x - coord2.x;
+    const dy = coord1.y - coord2.y;
+    return Math.sqrt(dx * dx + dy * dy);
+}
+
+// Get village type label
+function getVillageTypeLabel(category) {
+    const labels = {
+        'full': 'Full',
+        'threeFourths': '3/4',
+        'half': '1/2',
+        'quarter': '1/4'
+    };
+    return labels[category] || '';
 }
 
 // Sequential request handler with delay
@@ -437,9 +636,11 @@ function parsePlayerTroops($data) {
             return;
         }
         
+        const villageName = $cells.eq(0).text().trim();
         const village = {
-            name: $cells.eq(0).text().trim(),
+            name: villageName,
             points: $cells.eq(1).text().trim(),
+            coords: parseCoordinates(villageName),
             units: {}
         };
         
@@ -526,7 +727,9 @@ function calculatePlayerStats(villages) {
             half: 0,
             quarter: 0
         },
-        totalUnits: {}
+        totalUnits: {},
+        offensiveVillages: [],
+        defensiveVillages: []
     };
     
     // Initialize total units
@@ -544,11 +747,23 @@ function calculatePlayerStats(villages) {
             const category = categorizeVillage(villageStats.offensivePop);
             if (category) {
                 stats.nukes[category]++;
+                stats.offensiveVillages.push({
+                    name: village.name,
+                    coords: village.coords,
+                    category: category,
+                    population: villageStats.offensivePop
+                });
             }
         } else {
             const category = categorizeVillage(villageStats.defensivePop);
             if (category) {
                 stats.dvs[category]++;
+                stats.defensiveVillages.push({
+                    name: village.name,
+                    coords: village.coords,
+                    category: category,
+                    population: villageStats.defensivePop
+                });
             }
         }
         
@@ -693,6 +908,9 @@ function displayResults() {
     // Make collapsibles work
     makeCollapsible();
     
+    // Add distance analysis section
+    displayDistanceAnalysis();
+    
     // Setup settings change handler
     $('#ttc-reload-btn').on('click', function() {
         const hasArchers = $('#ttc-archer-mode').is(':checked');
@@ -706,6 +924,183 @@ function displayResults() {
         DATA.unitIcons = {};
         main();
     });
+}
+
+// Display distance analysis section
+function displayDistanceAnalysis() {
+    const savedRanges = localStorage.getItem('ttc_distance_ranges');
+    const ranges = savedRanges ? JSON.parse(savedRanges) : [[0, 10], [10, 20], [20, 30], [30, 50]];
+    
+    let html = `<div class="ttc-distance-section">`;
+    html += `<div class="ttc-distance-header">Offensive Villages Distance Analysis</div>`;
+    html += `<div class="ttc-distance-config">`;
+    
+    // Reference village input
+    html += `<div class="ttc-distance-inputs">`;
+    html += `<div class="ttc-input-group">`;
+    html += `<label>Reference Village (X|Y):</label>`;
+    html += `<div style="display: flex; gap: 5px;">`;
+    html += `<input type="number" id="ttc-ref-x" placeholder="X" />`;
+    html += `<input type="number" id="ttc-ref-y" placeholder="Y" />`;
+    html += `</div>`;
+    html += `</div>`;
+    html += `</div>`;
+    
+    // Distance ranges
+    html += `<div class="ttc-ranges-container" id="ttc-ranges-list">`;
+    html += `<label style="color: white; font-weight: 500; margin-bottom: 5px;">Distance Ranges:</label>`;
+    ranges.forEach((range, index) => {
+        html += `<div class="ttc-range-item" data-index="${index}">`;
+        html += `<input type="number" class="range-min" value="${range[0]}" placeholder="Min" />`;
+        html += `<span style="color: white;">to</span>`;
+        html += `<input type="number" class="range-max" value="${range[1]}" placeholder="Max" />`;
+        html += `<button class="ttc-btn ttc-btn-danger remove-range">Remove</button>`;
+        html += `</div>`;
+    });
+    html += `</div>`;
+    
+    // Action buttons
+    html += `<div style="display: flex; gap: 10px; margin-top: 15px;">`;
+    html += `<button class="ttc-btn" id="ttc-add-range">Add Range</button>`;
+    html += `<button class="ttc-btn ttc-btn-success" id="ttc-calculate-distance">Calculate Distances</button>`;
+    html += `</div>`;
+    
+    html += `</div>`; // End config
+    
+    // Results container
+    html += `<div class="ttc-distance-results" id="ttc-distance-results" style="display: none;"></div>`;
+    
+    html += `</div>`; // End distance section
+    
+    $('.ttc-tribe-totals').after(html);
+    
+    // Event handlers
+    $('#ttc-add-range').on('click', function() {
+        const $container = $('#ttc-ranges-list');
+        const index = $('.ttc-range-item').length;
+        const newRange = `
+            <div class="ttc-range-item" data-index="${index}">
+                <input type="number" class="range-min" value="0" placeholder="Min" />
+                <span style="color: white;">to</span>
+                <input type="number" class="range-max" value="10" placeholder="Max" />
+                <button class="ttc-btn ttc-btn-danger remove-range">Remove</button>
+            </div>`;
+        $container.append(newRange);
+    });
+    
+    $(document).on('click', '.remove-range', function() {
+        $(this).closest('.ttc-range-item').remove();
+    });
+    
+    $('#ttc-calculate-distance').on('click', function() {
+        calculateAndDisplayDistances();
+    });
+}
+
+// Calculate and display distance results
+function calculateAndDisplayDistances() {
+    const refX = parseInt($('#ttc-ref-x').val());
+    const refY = parseInt($('#ttc-ref-y').val());
+    
+    if (isNaN(refX) || isNaN(refY)) {
+        alert('Please enter valid reference village coordinates!');
+        return;
+    }
+    
+    const refCoords = { x: refX, y: refY };
+    
+    // Get ranges
+    const ranges = [];
+    $('.ttc-range-item').each(function() {
+        const min = parseFloat($(this).find('.range-min').val()) || 0;
+        const max = parseFloat($(this).find('.range-max').val()) || 0;
+        ranges.push([min, max]);
+    });
+    
+    // Save ranges to localStorage
+    localStorage.setItem('ttc_distance_ranges', JSON.stringify(ranges));
+    
+    // Sort ranges by min value
+    ranges.sort((a, b) => a[0] - b[0]);
+    
+    // Collect all offensive villages with distances
+    const allOffensiveVillages = [];
+    
+    DATA.players.forEach(player => {
+        const stats = DATA.playerStats[player.name];
+        if (stats && stats.offensiveVillages) {
+            stats.offensiveVillages.forEach(village => {
+                if (village.coords) {
+                    const distance = calculateDistance(refCoords, village.coords);
+                    allOffensiveVillages.push({
+                        playerName: player.name,
+                        village: village,
+                        distance: distance
+                    });
+                }
+            });
+        }
+    });
+    
+    // Group by ranges
+    const rangeGroups = ranges.map(range => ({
+        min: range[0],
+        max: range[1],
+        villages: []
+    }));
+    
+    allOffensiveVillages.forEach(item => {
+        for (let i = 0; i < rangeGroups.length; i++) {
+            if (item.distance >= rangeGroups[i].min && item.distance < rangeGroups[i].max) {
+                rangeGroups[i].villages.push(item);
+                break;
+            }
+        }
+    });
+    
+    // Display results
+    let html = `<h3 style="color: white; margin-bottom: 15px;">Results for reference village ${refX}|${refY}</h3>`;
+    html += `<div style="color: #7289DA; font-size: 16px; margin-bottom: 20px;">Total offensive villages: ${allOffensiveVillages.length}</div>`;
+    
+    rangeGroups.forEach(group => {
+        html += `<div class="ttc-range-group">`;
+        html += `<div class="ttc-range-title">Distance ${group.min}-${group.max}: ${group.villages.length} villages</div>`;
+        
+        if (group.villages.length > 0) {
+            // Group by player
+            const byPlayer = {};
+            group.villages.forEach(item => {
+                if (!byPlayer[item.playerName]) {
+                    byPlayer[item.playerName] = [];
+                }
+                byPlayer[item.playerName].push(item);
+            });
+            
+            html += `<div class="ttc-player-villages">`;
+            Object.keys(byPlayer).sort().forEach(playerName => {
+                html += `<div class="ttc-player-header">${playerName} (${byPlayer[playerName].length})</div>`;
+                
+                byPlayer[playerName].sort((a, b) => a.distance - b.distance).forEach(item => {
+                    const village = item.village;
+                    const coordsStr = village.coords ? `${village.coords.x}|${village.coords.y}` : 'N/A';
+                    
+                    html += `<div class="ttc-village-item">`;
+                    html += `<div class="ttc-village-info">`;
+                    html += `<div>${village.name}</div>`;
+                    html += `<div style="font-size: 12px; color: #99AAB5; margin-top: 3px;">${coordsStr}</div>`;
+                    html += `</div>`;
+                    html += `<span class="ttc-village-type">${getVillageTypeLabel(village.category)}</span>`;
+                    html += `<span class="ttc-distance-badge">${item.distance.toFixed(1)}</span>`;
+                    html += `</div>`;
+                });
+            });
+            html += `</div>`;
+        }
+        
+        html += `</div>`;
+    });
+    
+    $('#ttc-distance-results').html(html).show();
 }
 
 // Make collapsible sections work
