@@ -163,6 +163,7 @@ window.twSDK = {
         axe: 1,
         archer: 1,
         spy: 2,
+        light: 4,
         marcher: 5,
         heavy: 6,
         ram: 5,
@@ -2078,6 +2079,7 @@ window.twSDK = {
         let cats = twSDK.getTroop('catapult');
         let rams = twSDK.getTroop('ram');
         let scouts = twSDK.getTroop('spy');
+        let light = twSDK.getTroop('light') * 4;
         let spear = twSDK.getTroop('spear');
         let sword = twSDK.getTroop('sword');
         let axe = twSDK.getTroop('axe');
@@ -2123,11 +2125,17 @@ window.twSDK = {
                 document.forms[0].axe.value = axeToSend;
                 fakePop = fakePop - axeToSend;
             }
-            // Finally Sword (1 pop each)
+            // Then Sword (1 pop each)
             if (sword > 0 && fakePop > 0) {
                 let swordToSend = Math.min(sword, fakePop);
                 document.forms[0].sword.value = swordToSend;
                 fakePop = fakePop - swordToSend;
+            }
+            // Finally Light Cavalry (4 pop each)
+            if (light > 0 && fakePop >= 4) {
+                let lightToSend = Math.min(Math.floor(light / 4), Math.floor(fakePop / 4));
+                document.forms[0].light.value = lightToSend;
+                fakePop = fakePop - (lightToSend * 4);
             }
         }
     }
